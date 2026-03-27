@@ -40,11 +40,11 @@ function supportsMrsFormat(userAgent) {
 }
 
 export class ClashConfigBuilder extends BaseConfigBuilder {
-    constructor(inputString, selectedRules, customRules, baseConfig, lang, userAgent, groupByCountry = false, enableClashUI = false, externalController, externalUiDownloadUrl, includeAutoSelect = true, useProviders = true) {
+    constructor(inputString, selectedRules, customRules, baseConfig, lang, userAgent, groupByCountry = false, enableClashUI = false, externalController, externalUiDownloadUrl, includeAutoSelect = true, useProviders = true, mergeUserGroups = false) {
         if (!baseConfig) {
             baseConfig = CLASH_CONFIG;
         }
-        super(inputString, baseConfig, lang, userAgent, groupByCountry, includeAutoSelect, useProviders);
+        super(inputString, baseConfig, lang, userAgent, groupByCountry, includeAutoSelect, useProviders, mergeUserGroups);
         this.selectedRules = selectedRules;
         this.customRules = customRules;
         this.countryGroupNames = [];

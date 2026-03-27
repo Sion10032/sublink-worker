@@ -187,7 +187,8 @@ FINAL,DIRECT
 `;
 
         it('ClashConfigBuilder should preserve custom proxy-group from Clash input', async () => {
-            const builder = new ClashConfigBuilder(clashInput, 'minimal', [], null, 'zh-CN', 'test-agent');
+            // Need mergeUserGroups=true to include user-defined proxy-groups
+            const builder = new ClashConfigBuilder(clashInput, 'minimal', [], null, 'zh-CN', 'test-agent', false, false, null, null, true, true, true);
             const yamlText = await builder.build();
             const built = yaml.load(yamlText);
 
@@ -198,7 +199,8 @@ FINAL,DIRECT
         });
 
         it('ClashConfigBuilder should preserve custom proxy-group from Sing-Box input', async () => {
-            const builder = new ClashConfigBuilder(singboxInput, 'minimal', [], null, 'zh-CN', 'test-agent');
+            // Need mergeUserGroups=true to include user-defined proxy-groups
+            const builder = new ClashConfigBuilder(singboxInput, 'minimal', [], null, 'zh-CN', 'test-agent', false, false, null, null, true, true, true);
             const yamlText = await builder.build();
             const built = yaml.load(yamlText);
 
@@ -209,7 +211,8 @@ FINAL,DIRECT
         });
 
         it('ClashConfigBuilder should preserve custom proxy-group from Surge input', async () => {
-            const builder = new ClashConfigBuilder(surgeInput, 'minimal', [], null, 'zh-CN', 'test-agent');
+            // Need mergeUserGroups=true to include user-defined proxy-groups
+            const builder = new ClashConfigBuilder(surgeInput, 'minimal', [], null, 'zh-CN', 'test-agent', false, false, null, null, true, true, true);
             const yamlText = await builder.build();
             const built = yaml.load(yamlText);
 
@@ -284,7 +287,8 @@ proxy-groups:
     url: http://custom.test/204
     interval: 600
 `;
-            const builder = new ClashConfigBuilder(inputWithDuplicateName, 'minimal', [], null, 'zh-CN', 'test-agent');
+            // Need mergeUserGroups=true to include user-defined proxy-groups
+            const builder = new ClashConfigBuilder(inputWithDuplicateName, 'minimal', [], null, 'zh-CN', 'test-agent', false, false, null, null, true, true, true);
             const yamlText = await builder.build();
             const config = yaml.load(yamlText);
 
@@ -320,7 +324,8 @@ proxy-groups:
     type: url-test
     proxies: []
 `;
-            const builder = new ClashConfigBuilder(inputWithEmptyProxies, 'minimal', [], null, 'zh-CN', 'test-agent');
+            // Need mergeUserGroups=true to include user-defined proxy-groups
+            const builder = new ClashConfigBuilder(inputWithEmptyProxies, 'minimal', [], null, 'zh-CN', 'test-agent', false, false, null, null, true, true, true);
             const yamlText = await builder.build();
             const config = yaml.load(yamlText);
 
@@ -351,7 +356,8 @@ proxy-groups:
       - NonExistent-Node
       - AnotherMissing
 `;
-            const builder = new ClashConfigBuilder(inputWithInvalidRefs, 'minimal', [], null, 'zh-CN', 'test-agent');
+            // Need mergeUserGroups=true to include user-defined proxy-groups
+            const builder = new ClashConfigBuilder(inputWithInvalidRefs, 'minimal', [], null, 'zh-CN', 'test-agent', false, false, null, null, true, true, true);
             const yamlText = await builder.build();
             const config = yaml.load(yamlText);
 
@@ -518,6 +524,181 @@ proxies:
 
             expect(merged.nameserver).toEqual(['1.1.1.1']);
             expect(merged.enable).toBe(true);
+        });
+    });
+
+    describe('mergeUserGroups option', () => {
+        const inputWithUserGroups = `
+proxies:
+  - name: HK-Node
+    type: ss
+    server: hk.example.com
+    port: 443
+    cipher: aes-128-gcm
+    password: test
+proxy-groups:
+  - name: 自定义选择
+    type: select
+    proxies:
+      - DIRECT
+      - REJECT
+      - HK-Node
+  - name: 自动测速
+    type: url-test
+    proxies:
+      - HK-Node
+    url: http://www.gstatic.com/generate_204
+    interval: 300
+`;
+
+        it('ClashConfigBuilder should NOT merge user groups when mergeUserGroups=false (default)', async () => {
+            const builder = new ClashConfigBuilder(
+                inputWithUserGroups,
+                'minimal',
+                [],
+                null,
+                'zh-CN',
+                'test-agent',
+                false,  // groupByCountry
+                false,  // enableClashUI
+                null,   // externalController
+                null,   // externalUiDownloadUrl
+                true,   // includeAutoSelect
+                true,   // useProviders
+                false   // mergeUserGroups (default)
+            );
+            const yamlText = await builder.build();
+            const config = yaml.load(yamlText);
+
+            // Should NOT have user-defined groups
+            const customGroup = config['proxy-groups'].find(g => g.name === '自定义选择');
+            expect(customGroup).toBeUndefined();
+
+            const urlTestGroup = config['proxy-groups'].find(g => g.name === '自动测速');
+            expect(urlTestGroup).toBeUndefined();
+
+            // Should still have system-generated groups
+            const nodeSelect = config['proxy-groups'].find(g => g.name === '🚀 节点选择');
+            expect(nodeSelect).toBeDefined();
+        });
+
+        it('ClashConfigBuilder should merge user groups when mergeUserGroups=true', async () => {
+            const builder = new ClashConfigBuilder(
+                inputWithUserGroups,
+                'minimal',
+                [],
+                null,
+                'zh-CN',
+                'test-agent',
+                false,  // groupByCountry
+                false,  // enableClashUI
+                null,   // externalController
+                null,   // externalUiDownloadUrl
+                true,   // includeAutoSelect
+                true,   // useProviders
+                true    // mergeUserGroups
+            );
+            const yamlText = await builder.build();
+            const config = yaml.load(yamlText);
+
+            // Should have user-defined groups
+            const customGroup = config['proxy-groups'].find(g => g.name === '自定义选择');
+            expect(customGroup).toBeDefined();
+            expect(customGroup.type).toBe('select');
+            expect(customGroup.proxies).toContain('HK-Node');
+        });
+
+        it('SingboxConfigBuilder should NOT merge user groups when mergeUserGroups=false', async () => {
+            const singboxInput = JSON.stringify({
+                outbounds: [
+                    {
+                        type: 'shadowsocks',
+                        tag: 'HK-Node',
+                        server: 'hk.example.com',
+                        server_port: 443,
+                        method: 'aes-128-gcm',
+                        password: 'test'
+                    },
+                    {
+                        type: 'selector',
+                        tag: '自定义选择',
+                        outbounds: ['DIRECT', 'REJECT', 'HK-Node']
+                    },
+                    { type: 'direct', tag: 'DIRECT' },
+                    { type: 'block', tag: 'REJECT' }
+                ]
+            });
+
+            const builder = new SingboxConfigBuilder(
+                singboxInput,
+                'minimal',
+                [],
+                null,
+                'zh-CN',
+                'test-agent',
+                false,  // groupByCountry
+                false,  // enableClashUI
+                null,   // externalController
+                null,   // externalUiDownloadUrl
+                '1.12', // singboxVersion
+                true,   // includeAutoSelect
+                true,   // useProviders
+                false   // mergeUserGroups (default)
+            );
+            const config = await builder.build();
+
+            // Should NOT have user-defined selector
+            const customSelector = config.outbounds.find(o => o.tag === '自定义选择');
+            expect(customSelector).toBeUndefined();
+
+            // Should still have system-generated groups
+            const nodeSelect = config.outbounds.find(o => o.tag === '🚀 节点选择');
+            expect(nodeSelect).toBeDefined();
+        });
+
+        it('SingboxConfigBuilder should merge user groups when mergeUserGroups=true', async () => {
+            const singboxInput = JSON.stringify({
+                outbounds: [
+                    {
+                        type: 'shadowsocks',
+                        tag: 'HK-Node',
+                        server: 'hk.example.com',
+                        server_port: 443,
+                        method: 'aes-128-gcm',
+                        password: 'test'
+                    },
+                    {
+                        type: 'selector',
+                        tag: '自定义选择',
+                        outbounds: ['DIRECT', 'REJECT', 'HK-Node']
+                    },
+                    { type: 'direct', tag: 'DIRECT' },
+                    { type: 'block', tag: 'REJECT' }
+                ]
+            });
+
+            const builder = new SingboxConfigBuilder(
+                singboxInput,
+                'minimal',
+                [],
+                null,
+                'zh-CN',
+                'test-agent',
+                false,  // groupByCountry
+                false,  // enableClashUI
+                null,   // externalController
+                null,   // externalUiDownloadUrl
+                '1.12', // singboxVersion
+                true,   // includeAutoSelect
+                true,   // useProviders
+                true    // mergeUserGroups
+            );
+            const config = await builder.build();
+
+            // Should have user-defined selector
+            const customSelector = config.outbounds.find(o => o.tag === '自定义选择');
+            expect(customSelector).toBeDefined();
+            expect(customSelector.type).toBe('selector');
         });
     });
 });

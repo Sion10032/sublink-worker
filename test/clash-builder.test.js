@@ -27,7 +27,8 @@ proxy-groups:
       - NotExist
     `;
 
-    const builder = new ClashConfigBuilder(input, 'minimal', [], null, 'zh-CN', 'test-agent');
+    // Need mergeUserGroups=true to include user-defined proxy-groups
+    const builder = new ClashConfigBuilder(input, 'minimal', [], null, 'zh-CN', 'test-agent', false, false, null, null, true, true, true);
     const yamlText = await builder.build();
     const built = yaml.load(yamlText);
 

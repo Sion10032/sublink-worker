@@ -81,6 +81,7 @@ export function createApp(bindings = {}) {
             const groupByCountry = parseBooleanFlag(c.req.query('group_by_country'));
             const includeAutoSelect = c.req.query('include_auto_select') !== 'false';
             const useProviders = c.req.query('use_providers') !== 'false';
+            const mergeUserGroups = parseBooleanFlag(c.req.query('merge_user_groups'));
             const enableClashUI = parseBooleanFlag(c.req.query('enable_clash_ui'));
             const externalController = c.req.query('external_controller');
             const externalUiDownloadUrl = c.req.query('external_ui_download_url');
@@ -114,7 +115,8 @@ export function createApp(bindings = {}) {
                 externalUiDownloadUrl,
                 singboxConfigVersion,
                 includeAutoSelect,
-                useProviders
+                useProviders,
+                mergeUserGroups
             );
             await builder.build();
             const userinfo = builder.getSubscriptionUserinfo();
@@ -143,6 +145,7 @@ export function createApp(bindings = {}) {
             const groupByCountry = parseBooleanFlag(c.req.query('group_by_country'));
             const includeAutoSelect = c.req.query('include_auto_select') !== 'false';
             const useProviders = c.req.query('use_providers') !== 'false';
+            const mergeUserGroups = parseBooleanFlag(c.req.query('merge_user_groups'));
             const enableClashUI = parseBooleanFlag(c.req.query('enable_clash_ui'));
             const externalController = c.req.query('external_controller');
             const externalUiDownloadUrl = c.req.query('external_ui_download_url');
@@ -168,7 +171,8 @@ export function createApp(bindings = {}) {
                 externalController,
                 externalUiDownloadUrl,
                 includeAutoSelect,
-                useProviders
+                useProviders,
+                mergeUserGroups
             );
             await builder.build();
             const userinfo = builder.getSubscriptionUserinfo();
@@ -198,6 +202,7 @@ export function createApp(bindings = {}) {
             const groupByCountry = parseBooleanFlag(c.req.query('group_by_country'));
             const includeAutoSelect = c.req.query('include_auto_select') !== 'false';
             const useProviders = c.req.query('use_providers') !== 'false';
+            const mergeUserGroups = parseBooleanFlag(c.req.query('merge_user_groups'));
             const configId = c.req.query('configId');
             const filename = c.req.query('filename');
             const lang = c.get('lang');
@@ -217,7 +222,8 @@ export function createApp(bindings = {}) {
                 ua,
                 groupByCountry,
                 includeAutoSelect,
-                useProviders
+                useProviders,
+                mergeUserGroups
             );
             builder.setSubscriptionUrl(c.req.url);
             await builder.build();
