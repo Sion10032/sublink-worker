@@ -85,6 +85,7 @@ export const formLogicFn = (t) => {
             subconverterCopied: false,
             groupByCountry: false,
             includeAutoSelect: true,
+            useProviders: true,
             enableClashUI: false,
             externalController: '',
             externalUiDownloadUrl: '',
@@ -133,6 +134,7 @@ export const formLogicFn = (t) => {
                 this.showAdvanced = localStorage.getItem('advancedToggle') === 'true';
                 this.groupByCountry = localStorage.getItem('groupByCountry') === 'true';
                 this.includeAutoSelect = localStorage.getItem('includeAutoSelect') !== 'false';
+                this.useProviders = localStorage.getItem('useProviders') !== 'false';
                 this.enableClashUI = localStorage.getItem('enableClashUI') === 'true';
                 this.externalController = localStorage.getItem('externalController') || '';
                 this.externalUiDownloadUrl = localStorage.getItem('externalUiDownloadUrl') || '';
@@ -165,6 +167,7 @@ export const formLogicFn = (t) => {
                 this.$watch('showAdvanced', val => localStorage.setItem('advancedToggle', val));
                 this.$watch('groupByCountry', val => localStorage.setItem('groupByCountry', val));
                 this.$watch('includeAutoSelect', val => localStorage.setItem('includeAutoSelect', val));
+                this.$watch('useProviders', val => localStorage.setItem('useProviders', val));
                 this.$watch('enableClashUI', val => localStorage.setItem('enableClashUI', val));
                 this.$watch('externalController', val => localStorage.setItem('externalController', val));
                 this.$watch('externalUiDownloadUrl', val => localStorage.setItem('externalUiDownloadUrl', val));
@@ -383,6 +386,7 @@ export const formLogicFn = (t) => {
 
                     if (this.groupByCountry) params.append('group_by_country', 'true');
                     if (!this.includeAutoSelect) params.append('include_auto_select', 'false');
+                    if (!this.useProviders) params.append('use_providers', 'false');
                     if (this.enableClashUI) params.append('enable_clash_ui', 'true');
                     if (this.externalController) params.append('external_controller', this.externalController);
                     if (this.externalUiDownloadUrl) params.append('external_ui_download_url', this.externalUiDownloadUrl);
@@ -626,6 +630,7 @@ export const formLogicFn = (t) => {
                 // Extract other parameters
                 this.groupByCountry = params.get('group_by_country') === 'true';
                 this.includeAutoSelect = params.get('include_auto_select') !== 'false';
+                this.useProviders = params.get('use_providers') !== 'false';
                 this.enableClashUI = params.get('enable_clash_ui') === 'true';
 
                 const externalController = params.get('external_controller');
