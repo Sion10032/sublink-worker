@@ -6,10 +6,7 @@
 import { createTranslator } from '../i18n/index.js';
 import { generateRules } from './ruleGenerators.js';
 import { COUNTRY_DATA } from '../utils.js';
-import { DIRECT_DEFAULT_RULES } from './rules.js';
-
-// Rule names that should default to REJECT
-const REJECT_RULES = new Set(['Ad Block']);
+import { DIRECT_DEFAULT_RULES, REJECT_DEFAULT_RULES } from './rules.js';
 
 const SPEED_TEST_URL = 'http://www.gstatic.com/generate_204';
 
@@ -164,10 +161,36 @@ export function generateSubconverterConfig({ selectedRules = [], customRules = [
 		if (processedGroups.has(groupName)) return;
 		processedGroups.add(groupName);
 
-		if (REJECT_RULES.has(rule.outbound)) {
-			lines.push(`custom_proxy_group=${groupName}\`select\`[]REJECT\`[]DIRECT`);
+		if (REJECT_DEFAULT_RULES.has(rule.outbound)) {
+			if (groupByCountry) {
+				const refs = buildCountryGroupRefs(countryGroupNames);
+				if (includeAutoSelect) {
+					lines.push(`custom_proxy_group=${groupName}\`select\`[]REJECT\`[]DIRECT\`[]${nodeSelectName}\`[]${autoSelectName}\`[]${manualSwitchName}\`${refs}`);
+				} else {
+					lines.push(`custom_proxy_group=${groupName}\`select\`[]REJECT\`[]DIRECT\`[]${nodeSelectName}\`[]${manualSwitchName}\`${refs}`);
+				}
+			} else {
+				if (includeAutoSelect) {
+					lines.push(`custom_proxy_group=${groupName}\`select\`[]REJECT\`[]DIRECT\`[]${nodeSelectName}\`[]${autoSelectName}\`[]DIRECT\`.*`);
+				} else {
+					lines.push(`custom_proxy_group=${groupName}\`select\`[]REJECT\`[]DIRECT\`[]${nodeSelectName}\`[]DIRECT\`.*`);
+				}
+			}
 		} else if (DIRECT_DEFAULT_RULES.has(rule.outbound)) {
-			lines.push(`custom_proxy_group=${groupName}\`select\`[]DIRECT\`[]${nodeSelectName}`);
+			if (groupByCountry) {
+				const refs = buildCountryGroupRefs(countryGroupNames);
+				if (includeAutoSelect) {
+					lines.push(`custom_proxy_group=${groupName}\`select\`[]DIRECT\`[]REJECT\`[]${nodeSelectName}\`[]${autoSelectName}\`[]${manualSwitchName}\`${refs}`);
+				} else {
+					lines.push(`custom_proxy_group=${groupName}\`select\`[]DIRECT\`[]REJECT\`[]${nodeSelectName}\`[]${manualSwitchName}\`${refs}`);
+				}
+			} else {
+				if (includeAutoSelect) {
+					lines.push(`custom_proxy_group=${groupName}\`select\`[]DIRECT\`[]REJECT\`[]${nodeSelectName}\`[]${autoSelectName}\`[]DIRECT\`.*`);
+				} else {
+					lines.push(`custom_proxy_group=${groupName}\`select\`[]DIRECT\`[]REJECT\`[]${nodeSelectName}\`[]DIRECT\`.*`);
+				}
+			}
 		} else {
 			if (groupByCountry) {
 				const refs = buildCountryGroupRefs(countryGroupNames);
