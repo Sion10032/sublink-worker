@@ -99,6 +99,7 @@ export const formLogicFn = (t) => {
             configValidationState: '',
             configValidationMessage: '',
             customUA: '',
+            fileName: '',
             loading: false,
             generatedLinks: null,
             shortenedLinks: null,
@@ -136,6 +137,7 @@ export const formLogicFn = (t) => {
                 this.externalController = localStorage.getItem('externalController') || '';
                 this.externalUiDownloadUrl = localStorage.getItem('externalUiDownloadUrl') || '';
                 this.customUA = localStorage.getItem('userAgent') || '';
+                this.fileName = localStorage.getItem('fileName') || '';
                 this.configEditor = localStorage.getItem('configEditor') || '';
                 this.configType = localStorage.getItem('configType') || 'singbox';
                 this.customShortCode = localStorage.getItem('customShortCode') || '';
@@ -167,6 +169,7 @@ export const formLogicFn = (t) => {
                 this.$watch('externalController', val => localStorage.setItem('externalController', val));
                 this.$watch('externalUiDownloadUrl', val => localStorage.setItem('externalUiDownloadUrl', val));
                 this.$watch('customUA', val => localStorage.setItem('userAgent', val));
+                this.$watch('fileName', val => localStorage.setItem('fileName', val));
                 this.$watch('configEditor', val => {
                     localStorage.setItem('configEditor', val);
                     this.resetConfigValidation();
@@ -383,6 +386,7 @@ export const formLogicFn = (t) => {
                     if (this.enableClashUI) params.append('enable_clash_ui', 'true');
                     if (this.externalController) params.append('external_controller', this.externalController);
                     if (this.externalUiDownloadUrl) params.append('external_ui_download_url', this.externalUiDownloadUrl);
+                    if (this.fileName) params.append('filename', this.fileName);
 
                     // Add configId if present in URL
                     const urlParams = new URLSearchParams(window.location.search);
@@ -639,6 +643,11 @@ export const formLogicFn = (t) => {
                     this.customUA = ua;
                 }
 
+                const fileName = params.get('filename');
+                if (fileName) {
+                    this.fileName = fileName;
+                }
+
                 const configId = params.get('configId');
                 if (configId) {
                     this.currentConfigId = configId;
@@ -647,7 +656,7 @@ export const formLogicFn = (t) => {
 
                 // Expand advanced options if any advanced settings are present
                 if (selectedRules || customRules || this.groupByCountry || this.enableClashUI ||
-                    externalController || externalUiDownloadUrl || ua || configId) {
+                    externalController || externalUiDownloadUrl || ua || configId || fileName) {
                     this.showAdvanced = true;
                 }
             }

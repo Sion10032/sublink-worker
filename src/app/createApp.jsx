@@ -84,6 +84,7 @@ export function createApp(bindings = {}) {
             const externalController = c.req.query('external_controller');
             const externalUiDownloadUrl = c.req.query('external_ui_download_url');
             const configId = c.req.query('configId');
+            const filename = c.req.query('filename');
             const lang = c.get('lang');
 
             const requestedSingboxVersion = c.req.query('singbox_version') || c.req.query('sb_version') || c.req.query('sb_ver');
@@ -118,6 +119,9 @@ export function createApp(bindings = {}) {
             if (userinfo) {
                 c.header('subscription-userinfo', userinfo);
             }
+            if (filename) {
+                c.header('Content-Disposition', `attachment; filename=${filename}`);
+            }
             return c.json(builder.config);
         } catch (error) {
             return handleError(c, error, runtime.logger);
@@ -140,6 +144,7 @@ export function createApp(bindings = {}) {
             const externalController = c.req.query('external_controller');
             const externalUiDownloadUrl = c.req.query('external_ui_download_url');
             const configId = c.req.query('configId');
+            const filename = c.req.query('filename');
             const lang = c.get('lang');
 
             let baseConfig;
@@ -167,6 +172,9 @@ export function createApp(bindings = {}) {
             if (userinfo) {
                 headers['subscription-userinfo'] = userinfo;
             }
+            if (filename) {
+                headers['Content-Disposition'] = `attachment; filename=${filename}`;
+            }
             return c.text(builder.formatConfig(), 200, headers);
         } catch (error) {
             return handleError(c, error, runtime.logger);
@@ -186,6 +194,7 @@ export function createApp(bindings = {}) {
             const groupByCountry = parseBooleanFlag(c.req.query('group_by_country'));
             const includeAutoSelect = c.req.query('include_auto_select') !== 'false';
             const configId = c.req.query('configId');
+            const filename = c.req.query('filename');
             const lang = c.get('lang');
 
             let baseConfig;
@@ -210,6 +219,9 @@ export function createApp(bindings = {}) {
             const userinfo = builder.getSubscriptionUserinfo();
             if (userinfo) {
                 c.header('subscription-userinfo', userinfo);
+            }
+            if (filename) {
+                c.header('Content-Disposition', `attachment; filename=${filename}`);
             }
             return c.text(builder.formatConfig());
         } catch (error) {
@@ -266,6 +278,7 @@ export function createApp(bindings = {}) {
             return c.text('Missing config parameter', 400);
         }
 
+        const filename = c.req.query('filename');
         const proxylist = inputString.split('\n');
         const finalProxyList = [];
         const userAgent = c.req.query('ua') || getRequestHeader(c.req, 'User-Agent') || DEFAULT_USER_AGENT;
@@ -297,6 +310,9 @@ export function createApp(bindings = {}) {
             return c.text('Missing config parameter', 400);
         }
 
+        if (filename) {
+            c.header('Content-Disposition', `attachment; filename=${filename}`);
+        }
         return c.text(encodeBase64(finalString));
     });
 
